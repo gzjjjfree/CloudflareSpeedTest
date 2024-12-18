@@ -135,6 +135,7 @@ func main() {
 	// 开始下载测速
 	speedData := task.TestDownloadSpeed(pingData)
 	utils.ExportCsv(speedData) // 输出文件
+	utils.ExportJson(speedData) // 输出文件
 	speedData.Print()          // 打印结果
 
 	if versionNew != "" {

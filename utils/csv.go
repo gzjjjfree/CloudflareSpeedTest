@@ -2,6 +2,7 @@ package utils
 
 import (
 	"encoding/csv"
+	"encoding/json"
 	"fmt"
 	"log"
 	"net"
@@ -82,6 +83,40 @@ func ExportCsv(data []CloudflareIPData) {
 	_ = w.Write([]string{"IP 地址", "已发送", "已接收", "丢包率", "平均延迟", "下载速度 (MB/s)"})
 	_ = w.WriteAll(convertToString(data))
 	w.Flush()
+}
+
+type vaddresses struct {
+	Addresses string `json:"address"`
+}
+
+func ExportJson(data []CloudflareIPData) {
+	if len(data) == 0 {
+		return
+	}
+	fp, err := os.Create("result.json")
+	if err != nil {
+		log.Fatalf("创建文件[%s]失败：%v", Output, err)
+		return
+	}
+	defer fp.Close()
+
+	var v []vaddresses
+	for _, addr := range data {
+		newv := vaddresses{Addresses: addr.IP.String()}
+		v = append(v, newv)
+	}
+	jsonData, err := json.MarshalIndent(v, "", "    ") // 使用 4 个空格缩进
+	if err != nil {
+		fmt.Println("JSON marshaling error:", err)
+		return
+	}
+	_, err = fp.Write(jsonData) // 将 []byte 写入文件
+	// 或者使用 file.WriteString(string(jsonData)) // 将 string 写入文件
+	if err != nil {
+		fmt.Println("Error writing to file:", err)
+		return
+	}
+
 }
 
 func convertToString(data []CloudflareIPData) [][]string {
